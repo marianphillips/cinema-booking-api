@@ -1,92 +1,144 @@
-const prisma = require('../utils/prisma');
+const { movie } = require("../utils/prisma");
+const prisma = require("../utils/prisma");
 
 const getMovies = async (req, res) => {
-let gotMovies
+  const whereClauses = {
+    runtimeMins: {},
+  };
 
-    if(req.query.runtimeMins) {
-const lessThan = await prisma.movie.findMany({ 
-    where : {
-        runtimeMins : {
-            lt: Number(req.query.runtimeMins)
-        }
+  if (req.query.runtimeGreater) {
+    whereClauses.runtimeMins.gt = parseInt(req.query.runtimeGreater);
+  }
+  if (req.query.runtimeLess) {
+    whereClauses.runtimeMins.lt = parseInt(req.query.runtimeLess);
+  }
+
+  const gotMovies = await prisma.movie.findMany({
+    where: whereClauses,
+    include: {
+      screenings: true,
     },
-    include: { 
-    screenings: true
-    }
-})
+  });
 
-const greaterThan = await prisma.movie.findMany({ 
-        where : {
-            runtimeMins : {
-                gt: Number(req.query.runtimeMins)
-            }
-        },
-        include: { 
-            screenings: true
-            }
-        })
-
-    gotMovies = {less: lessThan,
-        more: greaterThan}
-    }
-
-
-    else{
-    gotMovies = await prisma.movie.findMany({ 
-    include: { 
-    screenings: true
-    }
-})
-}
-
-res.json({ data: gotMovies } )
-}
+  res.json({ data: gotMovies });
+};
 
 const getOneMovie = async (req, res) => {
-const titleOrId = req.params.titleOrId
+  const titleOrId = req.params.titleOrId;
 
-}
+  const id = parseInt(titleOrId);
+
+  let specificMovie;
+
+  if (id) {
+    const usingId = await prisma.movie.findUnique({
+      where: {
+        id: id,
+      },
+    });
+    specificMovie = usingId;
+  } else {
+    const usingTitle = await prisma.movie.findMany({
+      where: {
+        title: titleOrId,
+      },
+    });
+    specificMovie = usingTitle[0];
+  }
+
+  if (!specificMovie) {
+    res.json({ error: "Movie does not exist in database" });
+  } else {
+    res.json({ data: specificMovie });
+  }
+};
 
 const addMovie = async (req, res) => {
-    const {
-        title,
-        runtimeMins,
-        screenId,
-        startsAt
-    } = req.body;
+  const { title, runtimeMins } = req.body;
 
-    const sameName = await prisma.movie.findMany({
-        where: {
-            title: title
-          }
-    })
+  const movieData = {
+    title: title,
+    runtimeMins: runtimeMins,
+  };
 
-    if(sameName.length !== 0) {
-        res.json({ error: "Film with same name already exists in database"})
-        return
+  if (req.body.screenings) {
+    let screeningsToCreate = [];
+    for (const screening of req.body.screenings) {
+      screeningsToCreate.push({
+        startsAt: new Date(Date.parse(screening.startsAt)),
+        screenId: screening.screenId,
+      });
+    }
+    movieData.screenings = {
+      create: screeningsToCreate,
+    };
+  }
+
+  const sameName = await prisma.movie.findMany({
+    where: {
+      title: title,
+    },
+  });
+
+  if (sameName.length !== 0) {
+    res.json({ error: "Film with same name already exists in database" });
+    return;
+  }
+
+  const newMovie = await prisma.movie.create({
+    data: movieData,
+    include: {
+      screenings: true,
+    },
+  });
+
+  res.json({ data: newMovie });
+};
+
+const updateMovie = async (req, res) => {
+
+    let updatedMovieData = {}
+
+    if(req.body.title) {
+        updatedMovieData.title = req.body.title
     }
 
-    const newMovie = await prisma.movie.create({
-        data: {
-            title,
-            runtimeMins,
-            screenings: {
-                create: {
-                    screenId,
-                    startsAt
-                }
-            }
-        },
-        include: { 
-            screenings: true
-        }
-})
+    if(req.body.runtimeMins) {
+        updatedMovieData.runtimeMins = req.body.runtimeMins
+    }
 
-    res.json({ data: newMovie });
-}
+    if(req.body.screenings) {
+        let screeningsToUpdate = [];
+        for (const screening of req.body.screenings) {
+            screeningsToUpdate.push({ 
+            where : {id : 9},
+            data: {
+            startsAt: new Date(Date.parse(screening.startsAt)),
+            screenId: screening.screenId,
+          }
+        });
+        }
+        updatedMovieData.screenings = {
+          update: screeningsToUpdate,
+        };
+    }
+
+
+  const updatedMovie = await prisma.movie.update({
+    where: {
+      id: parseInt(req.params.id),
+    },
+    data: updatedMovieData,
+    include : {
+        screenings: true,
+    }
+  });
+  res.json({ data: updatedMovie });
+};
 
 module.exports = {
-    getMovies,
-    getOneMovie,
-    addMovie
+  getMovies,
+  getOneMovie,
+  addMovie,
+  updateMovie,
 };
