@@ -3,6 +3,27 @@ const prisma = require("../utils/prisma");
 const createTicket = async (req, res) => {
   const { screeningId, customerId } = req.body;
 
+  const screeningData = await prisma.screening.findUnique({
+      where: {
+        id: parseInt(screeningId)
+      },
+      include : {
+          movie: true,
+          screen: true
+      }
+  })
+
+  const customerData = await prisma.customer.findUnique({
+    where: {
+      id: parseInt(customerId)
+    },
+    include : {
+        contact: true,
+    }
+})
+
+  console.log(screeningData)
+
   const createdTicket = await prisma.ticket.create({
     data: {
       screening: {
@@ -12,14 +33,12 @@ const createTicket = async (req, res) => {
         connect: { id: parseInt(customerId) },
       },
     },
-
-    include: {
-      screening: true,
-      customer: true,
-      },
   });
 
-  res.json({ data: createdTicket });
+  res.json({ 
+      data: createdTicket,
+      screeningData: screeningData,
+      customerData: customerData });
 };
 
 module.exports = {

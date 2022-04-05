@@ -97,31 +97,42 @@ const addMovie = async (req, res) => {
 
 const updateMovie = async (req, res) => {
 
-    let updatedMovieData = {}
+    const checkMovie = await prisma.movie.findUnique({
+        where: {
+          id: parseInt(req.params.id),
+        },
+      });
+    
+      if (!checkMovie) {
+        res.json({ error: "Movie does not exist" })
+        return;
+      }
+    
+  let updatedMovieData = {};
 
-    if(req.body.title) {
-        updatedMovieData.title = req.body.title
-    }
+  if (req.body.title) {
+    updatedMovieData.title = req.body.title;
+  }
 
-    if(req.body.runtimeMins) {
-        updatedMovieData.runtimeMins = req.body.runtimeMins
-    }
+  if (req.body.runtimeMins) {
+    updatedMovieData.runtimeMins = req.body.runtimeMins;
+  }
 
-    if(req.body.screenings) {
-        let screeningsToUpdate = [];
-        for (const screening of req.body.screenings) {
-            screeningsToUpdate.push({ 
-            where : {id : 9},
-            data: {
-            startsAt: new Date(Date.parse(screening.startsAt)),
-            screenId: screening.screenId,
-          }
-        });
-        }
-        updatedMovieData.screenings = {
-          update: screeningsToUpdate,
-        };
+  if (req.body.screenings) {
+    let screeningsToUpdate = [];
+    for (const screening of req.body.screenings) {
+      screeningsToUpdate.push({
+        where: { id: 9 },
+        data: {
+          startsAt: new Date(Date.parse(screening.startsAt)),
+          screenId: screening.screenId,
+        },
+      });
     }
+    updatedMovieData.screenings = {
+      update: screeningsToUpdate,
+    };
+  }
 
 
   const updatedMovie = await prisma.movie.update({
@@ -129,9 +140,9 @@ const updateMovie = async (req, res) => {
       id: parseInt(req.params.id),
     },
     data: updatedMovieData,
-    include : {
-        screenings: true,
-    }
+    include: {
+      screenings: true,
+    },
   });
   res.json({ data: updatedMovie });
 };
