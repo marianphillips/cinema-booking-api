@@ -31,6 +31,7 @@ const createCustomer = async (req, res) => {
     res.json({ data: createdCustomer });
 }
 
+
 module.exports = {
     createCustomer
 };

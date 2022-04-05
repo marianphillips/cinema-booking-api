@@ -4,9 +4,16 @@ require('dotenv').config();
 // Import express and cors
 const express = require('express');
 const cors = require('cors');
+const morgan = require("morgan")
+const bodyParser = require("body-parser")
+
+
+
 
 // Set up express
 const app = express();
+app.use(morgan("dev"));
+app.use(bodyParser.json())
 app.disable('x-powered-by');
 app.use(cors());
 // Tell express to use a JSON parser middleware
@@ -20,7 +27,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // Tell express to use your routers here
 const customerRouter = require('./routers/customer');
+const moviesRouter = require('./routers/movies')
 app.use('/customer', customerRouter);
+app.use('/movies', moviesRouter);
 
 
 
