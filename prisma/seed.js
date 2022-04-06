@@ -6,6 +6,7 @@ async function seed() {
     const movies = await createMovies();
     const screens = await createScreens();
     await createScreenings(screens, movies);
+    await createReviews()
 
     process.exit(0);
 }
@@ -96,6 +97,24 @@ async function createScreenings(screens, movies) {
         }
     }
 }
+
+    async function createReviews() {
+        const review = await prisma.review.create({
+            data: {
+                content: 'Matrix is lame-trix',
+                customer: {connect: { id : 1 }},
+                movie: {connect: { id : 1 }}
+            },
+            include: {
+                customer: true,
+                movie: true,
+            }
+        });
+    
+        console.log('Review created', review);
+    
+        return review;
+    }
 
 seed()
     .catch(async e => {

@@ -4,7 +4,14 @@ const prisma = require("../utils/prisma");
 const getMovies = async (req, res) => {
   const whereClauses = {
     runtimeMins: {},
-  };
+    screenings: {
+        some: {
+            startsAt: {
+            gte: new Date()
+            }
+          },
+        }
+    }
 
   if (req.query.runtimeGreater) {
     whereClauses.runtimeMins.gt = parseInt(req.query.runtimeGreater);
@@ -16,7 +23,13 @@ const getMovies = async (req, res) => {
   const gotMovies = await prisma.movie.findMany({
     where: whereClauses,
     include: {
-      screenings: true,
+      screenings: {
+          where : {
+            startsAt: {
+                gte: new Date()
+                }
+          }
+      },
     },
   });
 
