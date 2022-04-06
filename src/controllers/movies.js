@@ -44,19 +44,26 @@ const getOneMovie = async (req, res) => {
   let specificMovie;
 
   if (id) {
-    const usingId = await prisma.movie.findUnique({
+    specificMovie = await prisma.movie.findUnique({
       where: {
         id: id,
       },
+      include: {
+          screenings: true,
+      }
     });
-    specificMovie = usingId;
   } else {
-    const usingTitle = await prisma.movie.findMany({
+    specificMovie = await prisma.movie.findFirst({
       where: {
-        title: titleOrId,
+        title: {
+            equals: titleOrId,
+            mode: "insensitive"
+        },
+      include: {
+          screenings: true,
+      }
       },
     });
-    specificMovie = usingTitle[0];
   }
 
   if (!specificMovie) {
@@ -133,11 +140,12 @@ const updateMovie = async (req, res) => {
     updatedMovieData.runtimeMins = req.body.runtimeMins;
   }
 
+
   if (req.body.screenings) {
     let screeningsToUpdate = [];
     for (const screening of req.body.screenings) {
       screeningsToUpdate.push({
-        where: { id: 6 },
+        where: { id: parseInt(screening.id) },
         data: {
           startsAt: new Date(Date.parse(screening.startsAt)),
           screenId: screening.screenId,

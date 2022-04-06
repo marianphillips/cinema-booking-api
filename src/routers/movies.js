@@ -11,6 +11,6 @@ router.get("/:titleOrId", getOneMovie)
 
 router.post("/", addMovie)
 
-router.put("/:id", updateMovie);
+router.patch("/:id", updateMovie);
 
 module.exports = router;

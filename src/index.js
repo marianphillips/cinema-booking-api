@@ -32,7 +32,7 @@ const screenRouter = require('./routers/screen')
 const ticketRouter = require('./routers/ticket')
 const reviewRouter = require('./routers/review')
 app.use('/customer', customerRouter);
-app.use('/movies', moviesRouter);
+app.use('/movie', moviesRouter);
 app.use('/screen', screenRouter)
 app.use('/ticket', ticketRouter)
 app.use('/review', reviewRouter)
