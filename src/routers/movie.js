@@ -1,7 +1,7 @@
 const express = require("express");
 const {
  getMovies, getOneMovie, addMovie, updateMovie
-} = require('../controllers/movies');
+} = require('../controllers/movie');
 
 const router = express.Router();
 

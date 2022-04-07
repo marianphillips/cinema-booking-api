@@ -31,6 +31,9 @@ const getMovies = async (req, res) => {
         },
       },
     },
+    include: {
+        screenings: true,
+    }
   });
 
   res.json({ data: gotMovies });
@@ -79,7 +82,7 @@ const addMovie = async (req, res) => {
 
   const movieData = {
     title: title,
-    runtimeMins: runtimeMins,
+    runtimeMins: parseInt(runtimeMins),
   };
 
   if (req.body.screenings) {
@@ -137,7 +140,7 @@ const updateMovie = async (req, res) => {
   }
 
   if (req.body.runtimeMins) {
-    updatedMovieData.runtimeMins = req.body.runtimeMins;
+    updatedMovieData.runtimeMins = parseInt(req.body.runtimeMins);
   }
 
 
